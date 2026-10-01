@@ -1,0 +1,17 @@
+# 统一换行符，避免在 Linux / macOS 上 clone 之后整个文件都显示成「已改动」。
+# 仓库里一律存 LF；检出时由各平台自行决定。
+* text=auto eol=lf
+
+# 二进制文件不要做换行转换，也不要试图 diff
+*.png  binary
+*.jpg  binary
+*.gif  binary
+*.pdf  binary
+*.woff binary
+*.woff2 binary
+
+# 提交进仓库的单文件产物是生成的，折叠 diff —— 它有几万行，
+# 展开会把代码改动淹掉。
+play/index.html     linguist-generated=true -diff
+tutorial/index.html linguist-generated=true -diff
+play/src/lesson-theme.css linguist-generated=true
