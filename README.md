@@ -1,4 +1,6 @@
-# 日本麻将（立直麻将）
+# 日本麻将 · 从零开始
+
+> `riichi-dojo` —— 立直道场。一个把「完全不会打麻将」教到「能自己打完一局」的地方。
 
 以**雀魂四人麻将段位场**为基准规则的日麻项目 —— 从零基础教学，一直做到能打。
 
@@ -553,4 +555,31 @@ base64 之后 +320KB —— 单文件体积直接翻倍。而 8-bit 的三个声
 ### 牌面
 
 `ui/tiles.js` 中的麻将牌图形为本项目用内联 SVG 绘制。
+
+---
+
+## 发布信息（给维护者）
+
+新建 GitHub 仓库后，**About** 栏填这段（中英双语，两边都搜得到）：
+
+```
+日本麻将（立直麻将）从零基础教到能打：规则文档 + 6 关新手关卡 + 可玩四人半庄。
+单文件 HTML 双击即开，无需安装、无需构建、无需联网。
+
+Riichi mahjong from absolute zero — rules, interactive lessons, and a playable
+game in one self-contained HTML file. No install, no build, works offline.
+```
+
+**Topics** 标签（GitHub 站内的发现机制，比仓库名管用）：
+
+```
+riichi-mahjong   japanese-mahjong   mahjong   tutorial   chinese
+game             html5              web-audio offline    beginner-friendly
+single-file      vanilla-js         no-dependencies
+```
+
+**仓库名**：`riichi-dojo`（立直道场）。
+名字的职责是**被找到**，README 标题的职责是**一眼说清是什么** —— 所以两者故意不同。
+中文用户在 GitHub 搜「日麻」，命中靠的是 About 和 README，不是仓库名。
+
 
