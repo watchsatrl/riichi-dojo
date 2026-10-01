@@ -1,0 +1,54 @@
+# 把单文件产物发布到 GitHub Pages。
+#
+# 这个项目的交付物就是 play/index.html 这一个自包含文件，
+# 所以 Pages 托管特别合适 —— 别人点开链接就能玩，不用下载也不用构建。
+#
+# ⚠️ 这份工作流是在本地写的，**没有在 GitHub Actions 上实跑过**
+#    （开发环境访问不了 github.com）。第一次推送后请在 Actions 标签页确认。
+#
+# 启用方式：仓库 Settings → Pages → Source 选 "GitHub Actions"。
+# 如果你的默认分支不叫 main，把下面的 branches 改掉。
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # 产物是提交进仓库的，这里只做「摆到站点根目录」这一步。
+      # 之所以不在这里现构建：交付物本身就必须是仓库里的东西 ——
+      # clone 下来双击能玩，是这个项目最基本的承诺。
+      - name: 准备站点文件
+        run: |
+          set -e
+          mkdir -p _site
+          cp play/index.html _site/index.html
+          cp tutorial/index.html _site/tutorial.html
+          cp -r shots _site/shots
+          ls -la _site
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v4

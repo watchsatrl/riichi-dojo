@@ -17,6 +17,11 @@
 | **查规则** | `docs/rules.md` —— 约 1700 行，含完整规则开关表 |
 | **查役种** | `docs/yaku.md` |
 
+> **在线玩**：仓库自带 GitHub Pages 工作流（`.github/workflows/pages.yml`）。
+> 在 Settings → Pages 把 Source 设为「GitHub Actions」，推送后即可通过
+> `https://<用户名>.github.io/<仓库名>/` 直接游玩，无需下载。
+> 该工作流未在真实 Actions 环境实跑过，首次推送后请到 Actions 标签页确认。
+
 **基础篇 6 关**：认牌 → 和牌长什么样 → 为什么不让我和牌 → 一局牌怎么走完 →
 该打哪张 → **思路**。走完之后你会拿到一张每巡都能用的检查表，对局里随时能翻。
 
