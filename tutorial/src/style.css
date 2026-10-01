@@ -1,0 +1,343 @@
+/* ═══════════════════════════════════════════════════════════════
+   日本麻将教程 · 样式表
+   设计取向：暖纸底色 + 高可读性正文字号，长时间阅读不累。
+   牌面一律内联 SVG（见 ui-tiles.js），不依赖任何外部资源。
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  --paper:      #f6f3ea;
+  --paper-2:    #fbf9f3;
+  --card:       #fffefb;
+  --ink:        #221f1a;
+  --ink-2:      #565044;
+  --ink-3:      #8d8574;
+  --line:       #e3dccb;
+  --line-2:     #cec4ac;
+
+  --red:        #b03a2e;
+  --red-soft:   #fbeceb;
+  --green:      #2f6b4f;
+  --green-soft: #e9f2ec;
+  --blue:       #1f5fa8;
+  --blue-soft:  #eaf1f9;
+  --amber:      #9c6c14;
+  --amber-soft: #fbf3e0;
+
+  --radius:     10px;
+  --shadow:     0 1px 2px rgba(48,36,12,.06), 0 4px 14px rgba(48,36,12,.05);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", system-ui, sans-serif;
+  font-size: 16.5px;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ── 骨架布局 ─────────────────────────────────────────────────── */
+.layout { display: flex; align-items: flex-start; min-height: 100vh; }
+
+.sidebar {
+  flex: 0 0 252px; width: 252px;
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  background: var(--paper-2);
+  border-right: 1px solid var(--line);
+  padding: 26px 0 40px;
+}
+
+.sidebar-title {
+  padding: 0 22px 4px;
+  font-size: 15px; font-weight: 700; letter-spacing: .06em;
+  color: var(--ink);
+}
+.sidebar-sub {
+  padding: 0 22px 18px;
+  font-size: 12.5px; color: var(--ink-3); letter-spacing: .04em;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 12px;
+}
+
+.nav-group { padding: 10px 22px 4px; font-size: 11.5px; font-weight: 700; letter-spacing: .12em; color: var(--ink-3); }
+
+.nav-item {
+  display: flex; gap: 10px; align-items: baseline;
+  padding: 7px 22px 7px 20px;
+  font-size: 14.5px; color: var(--ink-2);
+  cursor: pointer; border: 0; background: none; width: 100%;
+  text-align: left; font-family: inherit; line-height: 1.5;
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  transition: background .12s, color .12s;
+}
+.nav-item > span:last-child { flex: 1 1 auto; }
+.nav-wip {
+  display: inline-block; margin-left: 7px; padding: 0 5px;
+  font-size: 10.5px; letter-spacing: .06em; border-radius: 4px;
+  background: #e8e0cd; color: var(--ink-3); vertical-align: 1px;
+}
+.nav-item:hover { background: #f2ece0; color: var(--ink); }
+.nav-item.active { background: #efe8da; color: var(--ink); font-weight: 650; border-left-color: var(--red); }
+.nav-num { flex: 0 0 auto; font-variant-numeric: tabular-nums; color: var(--ink-3); font-size: 13px; min-width: 15px; }
+.nav-item.active .nav-num { color: var(--red); }
+
+.content { flex: 1 1 auto; min-width: 0; max-width: 900px; padding: 42px 48px 140px; }
+
+/* ── 正文排版 ─────────────────────────────────────────────────── */
+h1 { font-size: 27px; line-height: 1.4; margin: 0 0 6px; letter-spacing: -.01em; }
+h2 { font-size: 21px; margin: 42px 0 12px; padding-top: 20px; border-top: 1px solid var(--line); letter-spacing: -.005em; }
+h3 { font-size: 17.5px; margin: 28px 0 8px; color: var(--ink); }
+h2:first-of-type, h3:first-of-type { border-top: 0; padding-top: 0; margin-top: 28px; }
+
+.lede { font-size: 15.5px; color: var(--ink-2); margin: 0 0 8px; }
+.lesson-head { margin-bottom: 26px; }
+.lesson-head .kicker {
+  display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .14em;
+  color: var(--red); margin-bottom: 8px;
+}
+
+p { margin: 13px 0; }
+ul, ol { margin: 13px 0; padding-left: 26px; }
+li { margin: 6px 0; }
+strong { font-weight: 680; }
+code {
+  font-family: "Cascadia Mono", Consolas, "SF Mono", monospace;
+  font-size: .89em; background: #efe9db; padding: 1px 5px; border-radius: 4px;
+  border: 1px solid var(--line);
+}
+a { color: var(--blue); }
+
+/* ── 牌面 ─────────────────────────────────────────────────────── */
+svg.mj-tile { display: inline-block; vertical-align: middle; flex: 0 0 auto; }
+svg.mj-tile.xs { width: 19px; }
+svg.mj-tile.sm { width: 25px; }
+svg.mj-tile.md { width: 34px; }
+svg.mj-tile.lg { width: 46px; }
+svg.mj-tile.xl { width: 62px; }
+svg.mj-tile.dim { opacity: .34; filter: saturate(.4); }
+svg.mj-tile.hl { filter: drop-shadow(0 0 0 2px var(--amber)); }
+
+.mj-kn { font-family: "Yu Mincho", "YuMincho", "MS Mincho", "SimSun", "Songti SC", "Noto Serif CJK SC", serif; }
+
+.hand {
+  display: inline-flex; gap: 2px; align-items: flex-end;
+  padding: 7px 9px; background: #e7e1d1; border: 1px solid var(--line-2);
+  border-radius: 8px; flex-wrap: wrap; vertical-align: middle;
+}
+.hand.plain { background: none; border: 0; padding: 0; }
+.hand + .hand { margin-left: 10px; }
+.tile-row { display: flex; flex-wrap: wrap; gap: 22px 30px; align-items: flex-end; margin: 20px 0; }
+.tile-row > figure { margin: 0; text-align: center; }
+.tile-row figcaption { font-size: 12.5px; color: var(--ink-3); margin-top: 7px; letter-spacing: .03em; }
+
+/* 拆解展示：面子 + 面子 + …… 视觉上要能读出「4 + 1」这个句式 */
+.tile-row.breakdown { gap: 13px; margin: 22px 0 26px; }
+.tile-row.breakdown figcaption { white-space: nowrap; }
+.bd-sep {
+  align-self: flex-end; padding-bottom: 30px;
+  color: var(--ink-3); font-size: 16px; font-weight: 600; user-select: none;
+}
+
+.fig-note { font-size: 13px; color: var(--ink-3); margin: -14px 0 20px; }
+
+.formula {
+  text-align: center; font-size: 17px; line-height: 2;
+  padding: 14px 18px; background: #f1ebdd; border-radius: var(--radius);
+  margin: 20px 0; font-variant-numeric: tabular-nums;
+}
+
+.inline-hand { display: inline-flex; gap: 1px; vertical-align: middle; }
+
+/* 副露与暗牌分两行 —— 必须能一眼看出这是两堆东西 */
+.hand-with-melds {
+  display: inline-flex; flex-direction: column; gap: 6px;
+  margin: 10px 0; vertical-align: middle;
+}
+.hw-row { display: flex; align-items: center; gap: 10px; }
+.hw-label {
+  flex: 0 0 84px; font-size: 12.5px; color: var(--ink-3);
+  letter-spacing: .02em; white-space: nowrap;
+}
+.hw-none { font-size: 13px; color: var(--ink-3); }
+
+/* 桌面座次图 */
+svg.table-diagram { display: block; width: 100%; max-width: 470px; margin: 26px auto 4px; }
+
+/* 牌河（舍牌区）：用更暗的底色和正手牌区分开，避免读者误以为是手里还有的牌 */
+.pond-row { margin: 18px 0 22px; }
+.pond { margin: 0; text-align: center; }
+.pond .hand { background: #ddd6c2; border-color: #bdb298; }
+.pond figcaption { font-size: 12.5px; color: var(--ink-3); margin-top: 7px; }
+
+/* ── 提示框 ───────────────────────────────────────────────────── */
+.note, .tip, .warn, .key {
+  border-radius: var(--radius); padding: 14px 18px; margin: 20px 0;
+  border-left: 4px solid; font-size: 15.5px;
+}
+.note { background: var(--blue-soft);  border-color: var(--blue); }
+.tip  { background: var(--green-soft); border-color: var(--green); }
+.warn { background: var(--amber-soft); border-color: var(--amber); }
+.key  { background: #f3efe3; border-color: var(--ink); }
+.note > :first-child, .tip > :first-child, .warn > :first-child, .key > :first-child { margin-top: 0; }
+.note > :last-child,  .tip > :last-child,  .warn > :last-child,  .key > :last-child  { margin-bottom: 0; }
+.note::before, .tip::before, .warn::before, .key::before {
+  display: block; font-size: 11.5px; font-weight: 700; letter-spacing: .13em; margin-bottom: 4px;
+}
+.note::before { content: "说明";   color: var(--blue); }
+.tip::before  { content: "要点";   color: var(--green); }
+.warn::before { content: "易错";   color: var(--amber); }
+.key::before  { content: "记住";   color: var(--ink-2); }
+
+/* ── 表格 ─────────────────────────────────────────────────────── */
+table { border-collapse: collapse; width: 100%; margin: 20px 0; font-size: 15px; }
+th, td { border: 1px solid var(--line); padding: 8px 12px; text-align: left; vertical-align: top; }
+th { background: #f1ebdd; font-weight: 660; font-size: 14.5px; }
+tbody tr:nth-child(even) { background: #fdfcf7; }
+
+/* 算符明细表：数字右对齐并用等宽数字，方便读者逐行相加 */
+.fu-table { max-width: 470px; }
+.fu-table td.num, .fu-table th.num { text-align: right; width: 96px; font-variant-numeric: tabular-nums; font-weight: 650; }
+
+/* 点数速查表：数字列必须等宽右对齐，否则读者没法纵向扫读 */
+.formula.big { font-size: 19px; }
+.score-table { font-size: 14px; }
+.score-table td.num, .score-table th.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.score-table td:first-child { white-space: nowrap; }
+.score-table th { font-size: 13.5px; }
+
+/* 役种图鉴表 */
+.yaku-table { font-size: 14px; }
+.yaku-table td.han, .yaku-table th.han { text-align: center; white-space: nowrap; width: 82px; font-weight: 650; }
+.yaku-table .ja { font-size: 11.5px; color: var(--ink-3); font-weight: 400; }
+.tag { display: inline-block; font-size: 11.5px; padding: 1px 8px; border-radius: 20px; white-space: nowrap; }
+.tag-closed { background: var(--red-soft); color: var(--red); }
+.tag-down { background: var(--amber-soft); color: var(--amber); }
+.tag-free { background: var(--green-soft); color: var(--green); }
+
+/* ── 「能不能和」判定器 ────────────────────────────────────────── */
+.judge {
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--card); padding: 20px 22px; margin: 26px 0;
+  box-shadow: var(--shadow);
+}
+.judge-title { font-weight: 680; margin-bottom: 14px; font-size: 16px; }
+.judge-board { display: flex; flex-direction: column; gap: 9px; margin-bottom: 16px; }
+.judge-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.judge-tag {
+  flex: 0 0 92px; font-size: 12.5px; color: var(--ink-3); letter-spacing: .03em;
+}
+.judge-controls, .judge-pond-opts { display: flex; gap: 8px; flex-wrap: wrap; }
+.judge-controls { margin-bottom: 14px; }
+.judge-pond-block { margin-bottom: 16px; }
+.judge-pond-label { font-size: 13px; color: var(--ink-3); margin-bottom: 8px; }
+.btn.on { border-color: var(--blue); background: var(--blue-soft); color: var(--blue); font-weight: 650; }
+.jd-pond { padding: 4px 9px; line-height: 0; }
+.jd-pond svg { pointer-events: none; }
+
+.judge-result {
+  border-top: 1px dashed var(--line-2); padding-top: 15px;
+}
+.jd-verdict { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+.jd-verdict.yes { color: var(--green); }
+.jd-verdict.no { color: var(--red); }
+.jd-line { font-size: 14.5px; margin: 4px 0; }
+.jd-line .bad { color: var(--red); font-weight: 650; }
+.jd-yaku {
+  display: inline-block; background: var(--green-soft); color: var(--green);
+  border-radius: 5px; padding: 1px 8px; margin: 2px 4px 2px 0; font-size: 13.5px;
+}
+.jd-reasons { margin: 8px 0 0; padding-left: 20px; font-size: 14px; color: var(--ink-2); }
+.jd-reasons li { margin: 3px 0; }
+
+/* ── 「该打哪张」训练器 ────────────────────────────────────────── */
+.dt {
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--card); padding: 20px 22px; margin: 26px 0;
+  box-shadow: var(--shadow);
+}
+.dt-title { font-weight: 680; margin-bottom: 12px; font-size: 16px; }
+.dt-prompt { font-size: 13.5px; color: var(--ink-3); margin-bottom: 10px; }
+.dt-hand { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 16px; }
+.dt-tile {
+  border: 1px solid transparent; background: none; padding: 2px; border-radius: 7px;
+  cursor: pointer; line-height: 0; transition: transform .1s, border-color .12s, background .12s;
+}
+.dt-tile:hover { border-color: var(--blue); background: var(--blue-soft); transform: translateY(-3px); }
+.dt-tile.picked { border-color: var(--amber); background: var(--amber-soft); }
+.dt-tile.optimal { border-color: var(--green); background: var(--green-soft); }
+.dt-result:empty { display: none; }
+.dt-verdict { font-size: 16px; font-weight: 700; margin-bottom: 10px; }
+.dt-verdict.yes { color: var(--green); }
+.dt-verdict.no { color: var(--amber); }
+.dt-table { margin: 0 0 10px; font-size: 14px; }
+.dt-table td, .dt-table th { vertical-align: middle; }
+.dt-table td.nowrap { white-space: nowrap; }
+.dt-table td.num, .dt-table th.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 650; }
+.dt-table tr.best { background: var(--green-soft) !important; }
+.dt-uke { display: inline-flex; align-items: center; gap: 1px; margin: 0 7px 2px 0; }
+.dt-uke b { font-size: 12px; color: var(--ink-2); }
+.dt-none { color: var(--ink-3); font-size: 13.5px; }
+.dt-note { font-size: 13px; color: var(--ink-3); }
+
+/* ── 常见错误清单 ─────────────────────────────────────────────── */
+.bug-table { font-size: 14.5px; }
+.bug-table td { vertical-align: top; }
+.bug-table td:first-child { width: 226px; }
+.bug-table td:nth-child(2) { width: 32%; color: var(--ink-2); }
+.bug-table .ref { font-size: 12px; color: var(--ink-3); }
+.checklist { background: #f3efe3; border-radius: var(--radius); padding: 6px 22px 6px 6px; margin: 20px 0; }
+.checklist ol { margin: 14px 0; }
+.checklist li { margin: 9px 0; }
+
+/* ── 练习组件 ─────────────────────────────────────────────────── */
+.ex {
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--card); padding: 20px 22px; margin: 26px 0;
+  box-shadow: var(--shadow);
+}
+.ex::before { content: "练习"; display: block; font-size: 11.5px; font-weight: 700; letter-spacing: .13em; color: var(--red); margin-bottom: 6px; }
+.ex-q { font-weight: 620; margin-bottom: 14px; }
+.ex-q .hand { margin: 8px 0; }
+.ex-opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.ex-opt {
+  border: 1px solid var(--line-2); background: #fff; color: var(--ink);
+  border-radius: 8px; padding: 8px 15px; cursor: pointer; font: inherit; font-size: 15px;
+  transition: border-color .12s, background .12s;
+}
+.ex-opt:hover:not(:disabled) { border-color: var(--blue); background: var(--blue-soft); }
+.ex-opt:disabled { cursor: default; }
+.ex-opt.ok { background: var(--green-soft); border-color: var(--green); color: var(--green); font-weight: 650; }
+.ex-opt.no { background: var(--red-soft);   border-color: var(--red);   color: var(--red); }
+.ex-opt.picked { border-color: var(--blue); background: var(--blue-soft); box-shadow: inset 0 0 0 1px var(--blue); }
+.ex-opt svg { pointer-events: none; }
+.ex-fb { margin-top: 14px; padding: 11px 15px; border-radius: 8px; display: none; font-size: 15.5px; }
+.ex-fb.show { display: block; }
+.ex-fb.ok { background: var(--green-soft); border-left: 3px solid var(--green); }
+.ex-fb.no { background: var(--red-soft);   border-left: 3px solid var(--red); }
+.ex-fb > :first-child { margin-top: 0; }
+.ex-fb > :last-child  { margin-bottom: 0; }
+.ex-actions { margin-top: 14px; display: flex; gap: 10px; }
+.btn {
+  border: 1px solid var(--line-2); background: #fff; color: var(--ink-2);
+  border-radius: 8px; padding: 6px 14px; cursor: pointer; font: inherit; font-size: 14px;
+}
+.btn:hover { border-color: var(--ink-3); color: var(--ink); }
+
+/* ── 响应式 ───────────────────────────────────────────────────── */
+@media (max-width: 860px) {
+  .layout { flex-direction: column; }
+  .sidebar { position: static; flex: none; width: 100%; height: auto; border-right: 0; border-bottom: 1px solid var(--line); padding-bottom: 16px; }
+  .content { padding: 26px 20px 90px; }
+  body { font-size: 16px; }
+}
+
+@media print {
+  .sidebar, .ex-actions { display: none; }
+  .content { max-width: none; padding: 0; }
+  .ex { break-inside: avoid; }
+}

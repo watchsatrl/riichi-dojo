@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>牌面校对表</title>
+<style>
+  body { background: #f6f3ea; font-family: "Segoe UI", "Microsoft YaHei", sans-serif; margin: 0; padding: 20px 24px; }
+  .mj-kn { font-family: "Yu Mincho", "YuMincho", "MS Mincho", "SimSun", "Songti SC", serif; }
+  svg.mj-tile { display: inline-block; vertical-align: middle; }
+  svg.mj-tile.xl { width: 58px; }
+  svg.mj-tile.lg { width: 42px; }
+  .row { display: flex; gap: 6px; margin: 8px 0; align-items: center; }
+  .lbl { flex: 0 0 62px; font-size: 13px; color: #7a7365; }
+  .cap { display: flex; gap: 6px; margin: 2px 0 14px; }
+  .cap span { width: 58px; text-align: center; font-size: 10px; color: #a09880; font-family: Consolas, monospace; }
+</style>
+</head>
+<body>
+<div id="app" style="display:none"></div>
+<div id="sheet"></div>
+<script src="../tutorial/.build/bundle.js"></script>
+<script>
+  const { tileSVG } = window.MJ;
+  const rows = [
+    ['萬子', [0,1,2,3,4,5,6,7,8]],
+    ['筒子', [9,10,11,12,13,14,15,16,17]],
+    ['索子', [18,19,20,21,22,23,24,25,26]],
+    ['字牌', [27,28,29,30,31,32,33]],
+    ['赤牌', [34,35,36]],
+    ['牌背', [-1]],
+  ];
+  document.getElementById('sheet').innerHTML = rows.map(([name, list]) => {
+    const codes = list.map(i => i < 0 ? 'back' : window.MJ.tileCode(i));
+    return `<div class="row"><span class="lbl">${name}</span>${list.map(i => tileSVG(i, { size: 'xl' })).join('')}</div>`
+         + `<div class="cap"><span class="lbl" style="flex:0 0 62px"></span>${codes.map(c => `<span>${c}</span>`).join('')}</div>`;
+  }).join('');
+</script>
+</body>
+</html>

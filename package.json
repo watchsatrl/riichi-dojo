@@ -1,0 +1,24 @@
+{
+  "name": "mahjong",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "日本麻将（立直麻将）：规则规格文档 + 教学关卡 + 可玩对局，单文件交付",
+  "license": "MIT",
+  "main": "engine/index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "node tools/build-tutorial.mjs game && node tools/build-tutorial.mjs tutorial",
+    "build:game": "node tools/build-tutorial.mjs game",
+    "build:tutorial": "node tools/build-tutorial.mjs tutorial",
+    "theme": "node tools/make-lesson-theme.mjs",
+    "test": "node --test tests/",
+    "test:files": "node tests/run-all.mjs",
+    "inject": "node tools/inject-bug.mjs --list"
+  },
+  "devDependencies": {
+    "jsdom": "^24.0.0"
+  }
+}

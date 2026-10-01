@@ -1,0 +1,42 @@
+MIT License
+
+Copyright (c) 2026 <在此填写你的名字或 ID>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+────────────────────────────────────────────────────────────────────────
+
+第三方内容说明
+
+1. 背景音乐
+   Erik Satie《Gymnopédie No. 1》（1888）—— 作品本身已进入公有领域。
+   乐谱数据取自 Mutopia Project 的公有领域 LilyPond 谱源：
+   https://www.mutopiaproject.org/ftp/SatieE/gymnopedie_1/gymnopedie_1.ly
+   （该文件标注 license = "Public Domain"）
+   音区选择与配器为本项目所作改编。
+
+2. 牌理规则
+   engine/ 的规则实现以《日本麻将规则规格》docs/rules.md 为准。
+   该文档由本项目撰写，但其中的规则事实来自公开发布的规则文本
+   （雀魂 / 天凤 / 日本职业麻将联盟 / 世界麻将规则）。
+   规则本身是事实与方法，不受著作权保护；
+   本项目**不分发**任何第三方页面的原文副本。
+
+3. 牌面
+   ui/tiles.js 中的麻将牌图形为本项目用内联 SVG 绘制。

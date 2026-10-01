@@ -1,0 +1,578 @@
+/* ═══════════════════════════════════════════════════════════════
+   日本麻将 · 对局界面
+   设计取向：深绿呢面 + 高对比牌面，长时间看牌不累。
+   牌面复用 ui/tiles.js 的内联 SVG，和教程是同一套。
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  --felt:       #1d4a37;
+  --felt-dark:  #143325;
+  --felt-line:  #2f6b4f;
+  --panel:      rgba(10, 30, 22, .55);
+  --panel-line: rgba(120, 200, 160, .22);
+  --ink:        #eef4ef;
+  --ink-2:      #a9c4b5;
+  --ink-3:      #6f8d7e;
+  --gold:       #e8c26a;
+  --red:        #e06a5a;
+  --blue:       #7fb2e8;
+  --radius:     10px;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+
+/* 对局是固定视口（牌桌要铺满），学习页要能滚动 —— 用 body 上的模式类切换 */
+body.mode-home, body.mode-level { overflow: auto; }
+
+body {
+  background: radial-gradient(ellipse at 50% 42%, #23593f 0%, var(--felt) 45%, var(--felt-dark) 100%);
+  color: var(--ink);
+  font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+#app { height: 100vh; display: flex; flex-direction: column; }
+body.mode-home #app, body.mode-level #app { height: auto; min-height: 100vh; display: block; }
+
+/* ── 牌面尺寸（对局用的档位，比教程小一号以塞下四家） ─────────── */
+svg.mj-tile { display: inline-block; vertical-align: middle; flex: 0 0 auto; }
+svg.mj-tile.xs { width: 15px; }
+svg.mj-tile.sm { width: 21px; }
+svg.mj-tile.md { width: 28px; }
+svg.mj-tile.lg { width: 36px; }
+svg.mj-tile.xl { width: 46px; }
+
+/* ── 顶部状态条 ───────────────────────────────────────────────── */
+.topbar {
+  display: flex; align-items: center; gap: 18px;
+  padding: 9px 18px;
+  background: rgba(6, 22, 16, .6);
+  border-bottom: 1px solid var(--panel-line);
+  font-size: 14px; flex: 0 0 auto;
+}
+.topbar .stat { display: flex; align-items: baseline; gap: 6px; }
+.topbar .lbl { color: var(--ink-3); font-size: 12px; }
+.topbar .val { font-weight: 650; font-variant-numeric: tabular-nums; }
+.topbar .grow { flex: 1 1 auto; }
+.topbar .dora { display: flex; align-items: center; gap: 4px; }
+.topbar .dora .lbl { margin-right: 2px; }
+.topbar .ura { opacity: .45; }
+
+/* ── 桌面：上/左/右/下 四个方位 ───────────────────────────────── */
+.table {
+  flex: 1 1 auto; min-height: 0;
+  display: grid;
+  grid-template-columns: 190px 1fr 190px;
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    ".    top    ."
+    "left center right"
+    ".    bottom .";
+  gap: 8px; padding: 10px 14px;
+}
+
+.seat { background: var(--panel); border: 1px solid var(--panel-line); border-radius: var(--radius); padding: 8px 10px; }
+.seat-top    { grid-area: top;    justify-self: center; }
+.seat-left   { grid-area: left;   align-self: center; }
+.seat-right  { grid-area: right;  align-self: center; }
+.seat-bottom { grid-area: bottom; justify-self: center; width: 100%; max-width: 900px; }
+.center {
+  grid-area: center; place-self: center;
+  /* 四家牌河围成一圈，中间放场次信息 —— 和真实牌桌一样 */
+  display: grid;
+  grid-template-columns: auto auto auto;
+  grid-template-rows: auto auto auto;
+  grid-template-areas:
+    ".    top    ."
+    "left info   right"
+    ".    bottom .";
+  gap: 12px 18px;
+  justify-items: center; align-items: center;
+  text-align: center;
+}
+
+/* 轮到谁行动，边框亮起来 */
+.seat.active { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold), 0 0 18px rgba(232,194,106,.22); }
+.seat.dealer .who::after { content: "親"; margin-left: 6px; font-size: 11px; color: var(--gold); border: 1px solid var(--gold); border-radius: 4px; padding: 0 4px; }
+
+.seat-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; }
+.seat-head .who { font-weight: 650; }
+.seat-head .score { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.seat-head .wind { color: var(--ink-3); font-size: 12px; }
+.seat-head .riichi {
+  font-size: 11px; color: #ffdca8; border: 1px solid var(--gold);
+  border-radius: 4px; padding: 0 5px; background: rgba(232,194,106,.14);
+}
+.seat-head .furiten { font-size: 11px; color: var(--red); border: 1px solid var(--red); border-radius: 4px; padding: 0 5px; }
+
+/* 他人的手牌只显示牌背 */
+.hand-row { display: flex; gap: 2px; flex-wrap: wrap; align-items: flex-end; min-height: 30px; }
+.melds-row { display: flex; gap: 10px; margin-top: 5px; flex-wrap: wrap; }
+.meld { display: flex; gap: 1px; background: rgba(255,255,255,.06); border-radius: 5px; padding: 2px; }
+
+/* ── 牌河：四家各占中间的一条边 ───────────────────────────────── */
+.pond-zone { min-width: 0; }
+.pz-top    { grid-area: top; }
+.pz-left   { grid-area: left; }
+.pz-right  { grid-area: right; }
+.pz-bottom { grid-area: bottom; }
+.center-info { grid-area: info; padding: 0 6px; }
+
+/*
+ * 每行 6 张，间距给足 —— 牌河要用来看和数，不能挤。
+ * 靠左右的两家向中心对齐，视觉上才是「围成一圈」。
+ */
+.pond {
+  display: grid; grid-template-columns: repeat(6, auto);
+  gap: 3px; justify-content: center;
+}
+.pz-left .pond  { justify-content: end; }
+.pz-right .pond { justify-content: start; }
+.pond .cell { line-height: 0; }
+.pond .cell.called { opacity: .35; }          /* 被鸣走的牌变淡 */
+.pond .cell.last svg { outline: 2px solid var(--gold); outline-offset: 1px; border-radius: 5px; }
+/* 牌河小一号，四家才放得下；这也符合真实观感 —— 中间那片本来就看不太清 */
+.pond .mj-tile { filter: drop-shadow(0 1px 1px rgba(0,0,0,.3)); }
+
+/* 中央信息 */
+.center .round { font-size: 15px; font-weight: 650; letter-spacing: .05em; }
+.center .walls { font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; color: var(--gold); }
+.center .walls-lbl { font-size: 11px; color: var(--ink-3); letter-spacing: .12em; }
+.center .sticks { margin-top: 8px; font-size: 12px; color: var(--ink-2); display: flex; gap: 12px; justify-content: center; }
+.center .stick-dots { letter-spacing: 2px; color: var(--gold); }
+
+/* ── 自己的手牌区 ─────────────────────────────────────────────── */
+.myhand {
+  flex: 0 0 auto; padding: 10px 18px 14px;
+  background: rgba(6, 22, 16, .5);
+  border-top: 1px solid var(--panel-line);
+  display: flex; flex-direction: column; gap: 9px; align-items: center;
+}
+.myhand-row { display: flex; gap: 3px; align-items: flex-end; flex-wrap: wrap; justify-content: center; }
+.myhand-row .sep { width: 12px; }               /* 摸到的牌与手牌之间的空隙 */
+
+.tile-btn {
+  border: 1px solid transparent; background: none; padding: 1px;
+  border-radius: 6px; cursor: pointer; line-height: 0;
+  transition: transform .1s, border-color .12s, background .12s;
+}
+.tile-btn:hover { border-color: var(--gold); background: rgba(232,194,106,.16); transform: translateY(-5px); }
+.tile-btn:disabled { cursor: default; }
+.tile-btn:disabled:hover { transform: none; border-color: transparent; background: none; }
+.tile-btn.drawn { margin-left: 14px; }
+
+/* ── 动作按钮 ─────────────────────────────────────────────────── */
+.actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; min-height: 40px; align-items: center; }
+.actions .hint { color: var(--ink-3); font-size: 13px; }
+.act {
+  border: 1px solid var(--panel-line); background: rgba(255,255,255,.08); color: var(--ink);
+  border-radius: 8px; padding: 7px 20px; font: inherit; font-size: 15px; font-weight: 600;
+  cursor: pointer; transition: background .12s, border-color .12s, transform .08s;
+}
+.act:hover { background: rgba(255,255,255,.17); border-color: var(--gold); }
+.act:active { transform: translateY(1px); }
+.act.primary { background: var(--gold); color: #2b2000; border-color: var(--gold); }
+.act.primary:hover { background: #f4d488; }
+.act.ghost { font-weight: 500; color: var(--ink-2); }
+
+/* ── 事件播报 ─────────────────────────────────────────────────── */
+.log {
+  position: fixed; right: 14px; bottom: 14px; width: 250px; max-height: 220px;
+  overflow: hidden; font-size: 12.5px; color: var(--ink-2);
+  background: rgba(6,22,16,.72); border: 1px solid var(--panel-line);
+  border-radius: var(--radius); padding: 8px 12px; pointer-events: none;
+}
+.log div { opacity: .55; }
+.log div:last-child { opacity: 1; color: var(--ink); }
+
+/* ── 结算浮层 ─────────────────────────────────────────────────── */
+.overlay {
+  position: fixed; inset: 0; background: rgba(4, 14, 10, .78);
+  display: flex; align-items: center; justify-content: center; z-index: 50;
+}
+.result {
+  background: #17392b; border: 1px solid var(--panel-line); border-radius: 14px;
+  padding: 26px 32px; min-width: 380px; max-width: 90vw; text-align: center;
+  box-shadow: 0 18px 60px rgba(0,0,0,.5);
+}
+.result h2 { margin: 0 0 6px; font-size: 22px; }
+.result .sub { color: var(--ink-3); font-size: 13px; margin-bottom: 16px; }
+.result .yaku-list { display: flex; flex-direction: column; gap: 5px; margin: 14px 0; }
+.result .yaku-line { display: flex; justify-content: space-between; font-size: 14px; }
+.result .yaku-line .han { color: var(--gold); font-variant-numeric: tabular-nums; }
+.result .total { font-size: 30px; font-weight: 700; color: var(--gold); margin: 14px 0 4px; font-variant-numeric: tabular-nums; }
+.result .deltas { display: flex; gap: 16px; justify-content: center; margin-top: 14px; font-size: 13px; }
+.result .deltas .d { font-variant-numeric: tabular-nums; }
+.result .deltas .d.up { color: #7fd6a0; }
+.result .deltas .d.down { color: var(--red); }
+.result .acts { margin-top: 20px; display: flex; gap: 12px; justify-content: center; }
+
+/* ── 开局设置 ─────────────────────────────────────────────────── */
+.setup { text-align: left; min-width: 400px; }
+.setup h1 { font-size: 21px; margin: 0 0 4px; text-align: center; }
+.setup .tagline { color: var(--ink-3); font-size: 13px; text-align: center; margin-bottom: 20px; }
+.setup .field { margin: 12px 0; }
+.setup .field > label { display: block; font-size: 13px; color: var(--ink-2); margin-bottom: 6px; }
+.setup .segs { display: flex; gap: 7px; flex-wrap: wrap; }
+.seg {
+  border: 1px solid var(--panel-line); background: rgba(255,255,255,.06); color: var(--ink-2);
+  border-radius: 7px; padding: 6px 14px; font: inherit; font-size: 14px; cursor: pointer;
+}
+.seg:hover { border-color: var(--gold); color: var(--ink); }
+.seg.on { background: var(--gold); color: #2b2000; border-color: var(--gold); font-weight: 650; }
+.setup .go { width: 100%; margin-top: 18px; }
+
+@media (max-width: 980px) {
+  .table { grid-template-columns: 1fr; grid-template-areas: "top" "center" "bottom"; }
+  .seat-left, .seat-right { display: none; }
+
+  /*
+   * 窄屏放不下「围成一圈」的四条边（左右两条会顶到屏幕外），
+   * 退化成 2×2 加底下一条信息 —— 四家仍然都在，只是不再按方位排。
+   */
+  .center {
+    grid-template-columns: auto auto;
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+      "top    right"
+      "left   bottom"
+      "info   info";
+    gap: 8px 12px;
+  }
+  .pond { grid-template-columns: repeat(4, auto); }
+  .pz-left .pond, .pz-right .pond { justify-content: center; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   教学关卡
+   学习页刻意用浅色「手册」外观，对局用深色牌桌 —— 长段中文在深色底上读着累。
+   .lesson-body 的浅色主题是 make-lesson-theme.mjs 从教程样式自动作用域化来的。
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── 关卡列表（深色，游戏入口） ───────────────────────────────── */
+.home { max-width: 860px; margin: 0 auto; padding: 40px 22px 80px; }
+.home-head h1 { font-size: 30px; margin: 0 0 6px; letter-spacing: -.01em; }
+.home-sub { color: var(--ink-2); font-size: 15px; margin: 0 0 20px; }
+.home-sub b { color: var(--gold); }
+.home-prog { display: flex; align-items: center; gap: 12px; margin-bottom: 30px; }
+.home-prog .bar { flex: 1 1 auto; height: 7px; background: rgba(255,255,255,.1); border-radius: 4px; overflow: hidden; }
+.home-prog .bar i { display: block; height: 100%; background: var(--gold); transition: width .3s; }
+.home-prog span { font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+.tier { margin-bottom: 34px; }
+.tier-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
+.tier-head h2 { font-size: 19px; margin: 0; }
+.tier-tag { font-size: 11px; color: var(--gold); border: 1px solid var(--gold); border-radius: 4px; padding: 0 6px; vertical-align: 2px; }
+.tier-tag.optional { color: var(--ink-3); border-color: var(--ink-3); }
+.tier-prog { margin-left: auto; font-size: 13px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.tier-desc { color: var(--ink-2); font-size: 14px; margin: 0 0 14px; }
+
+.level-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.level-card {
+  display: flex; gap: 11px; align-items: flex-start; text-align: left;
+  background: var(--panel); border: 1px solid var(--panel-line); border-radius: var(--radius);
+  padding: 13px 15px; color: var(--ink); font: inherit; cursor: pointer;
+  transition: border-color .12s, background .12s, transform .08s;
+}
+.level-card:hover { border-color: var(--gold); background: rgba(255,255,255,.09); transform: translateY(-1px); }
+.level-card.done { border-color: rgba(127,214,160,.45); }
+.lv-mark { color: var(--ink-3); font-size: 15px; line-height: 1.5; }
+.level-card.done .lv-mark { color: #7fd6a0; font-weight: 700; }
+.lv-text { display: flex; flex-direction: column; gap: 3px; }
+.lv-text b { font-size: 15.5px; }
+.lv-text span { font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+.home-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+/* ── 关卡页（浅色手册） ───────────────────────────────────────── */
+.level-screen {
+  background: var(--paper); min-height: 100vh;
+  max-width: 900px; margin: 0 auto; padding: 24px 34px 100px;
+}
+.ls-head { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+.ls-head .back { border-color: var(--line-2); color: var(--ink-2); }
+.ls-crumb { font-size: 13px; color: var(--ink-3); }
+.ls-crumb .ok { color: var(--green); }
+.ls-title { font-size: 27px; margin: 0 0 8px; }
+.ls-goal { color: var(--ink-2); font-size: 15px; margin: 0 0 28px; }
+.goal-tag {
+  display: inline-block; font-size: 11.5px; font-weight: 700; letter-spacing: .1em;
+  color: var(--red); border: 1px solid var(--red); border-radius: 4px;
+  padding: 0 6px; margin-right: 9px; vertical-align: 2px;
+}
+
+.ls-block { margin: 0 0 32px; }
+.ls-h2 { font-size: 17px; margin: 0 0 14px; display: flex; align-items: center; gap: 9px; }
+.ls-h2 .step {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--ink); color: var(--paper); font-size: 12.5px; font-weight: 700;
+}
+
+.lesson-details { border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); }
+.lesson-details summary {
+  cursor: pointer; padding: 12px 18px; font-size: 14px; color: var(--ink-2);
+  list-style: none; user-select: none;
+}
+.lesson-details summary::-webkit-details-marker { display: none; }
+.lesson-details summary::before { content: "▸ "; color: var(--ink-3); }
+.lesson-details[open] summary::before { content: "▾ "; }
+.lesson-details summary:hover { color: var(--ink); }
+.lesson-inner { padding: 0 18px 18px; border-top: 1px solid var(--line); }
+
+.ls-nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 30px; }
+.ls-nav .act { border-color: var(--line-2); }
+
+/* ── 动手区 ───────────────────────────────────────────────────── */
+.board-lede { color: var(--ink-2); font-size: 15px; margin: 0 0 16px; }
+.board-note {
+  background: var(--amber-soft); border-left: 4px solid var(--amber);
+  border-radius: var(--radius); padding: 13px 17px; margin: 20px 0 0; font-size: 15px;
+}
+.board-actions { display: flex; gap: 12px; margin: 18px 0; }
+
+/* ── 任务组件 ─────────────────────────────────────────────────── */
+.task {
+  border: 1px solid var(--line); border-radius: var(--radius); background: var(--card);
+  padding: 17px 20px; margin: 18px 0; box-shadow: var(--shadow);
+}
+.task-head { font-weight: 650; margin-bottom: 12px; font-size: 15.5px; }
+.task-prog { color: var(--ink-3); font-weight: 400; font-size: 13px; font-variant-numeric: tabular-nums; }
+.task-q { font-weight: 620; margin-bottom: 13px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.task-opts { display: flex; gap: 9px; flex-wrap: wrap; }
+.task-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; flex-wrap: wrap; }
+.task-lbl { flex: 0 0 82px; font-size: 12.5px; color: var(--ink-3); }
+.task .hand {
+  display: inline-flex; gap: 2px; align-items: flex-end; padding: 6px 8px;
+  background: #e7e1d1; border: 1px solid var(--line-2); border-radius: 8px;
+}
+.task-fb { margin-top: 13px; padding: 11px 15px; border-radius: 8px; display: none; font-size: 15px; }
+.task-fb.ok { display: block; background: var(--green-soft); border-left: 3px solid var(--green); }
+.task-fb.no { display: block; background: var(--red-soft); border-left: 3px solid var(--red); }
+.task-why { margin-top: 7px; font-size: 14px; color: var(--ink-2); }
+.task-done { color: var(--green); font-weight: 650; padding: 6px 0; }
+
+/* ── 思路卡 ───────────────────────────────────────────────────── */
+.mindset-card {
+  border: 2px solid var(--ink); border-radius: var(--radius);
+  background: var(--card); padding: 18px 22px; margin: 20px 0;
+}
+.mc-title {
+  font-size: 12px; font-weight: 700; letter-spacing: .13em; color: var(--red);
+  margin: 4px 0 10px;
+}
+.mc-title + .mc-title, .mc-list + .mc-title { margin-top: 20px; }
+.mc-list { margin: 0; padding-left: 22px; }
+.mc-list li { margin: 9px 0; }
+.mc-list li b { display: block; }
+.mc-list li span { font-size: 14px; color: var(--ink-2); }
+.mc-table { width: 100%; margin: 0; font-size: 14.5px; }
+.mc-table td { border: 0; border-top: 1px solid var(--line); padding: 9px 0; vertical-align: top; }
+.mc-table tr:first-child td { border-top: 0; }
+.mc-act { flex: 0 0 78px; width: 78px; color: var(--red); font-weight: 650; white-space: nowrap; }
+.mc-table span { color: var(--ink-2); font-size: 13.5px; }
+
+/* ── 右上角按钮组：提示 / 思路 / 声音 ─────────────────────────── */
+.side-btns {
+  position: fixed; right: 14px; top: 60px; z-index: 20;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
+}
+.side-btns .help-btn, .side-btns .audio-btn, .side-btns .hint-btn { position: static; }
+/* 音效和音乐并排放，两者是同一类设置 */
+.audio-pair {
+  position: fixed; right: 14px; top: 60px; z-index: 20;
+  display: flex; gap: 6px;
+}
+.side-btns .audio-pair { position: static; }
+
+.help-btn {
+  position: fixed; right: 14px; top: 60px; z-index: 20;
+  background: var(--gold); color: #2b2000; border: 0; border-radius: 8px;
+  padding: 7px 15px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0,0,0,.35);
+}
+.help-btn:hover { background: #f4d488; }
+
+/* 「提示」是主操作，做得比「思路」更醒目一点 */
+.hint-btn {
+  background: #2f6b4f; color: #eaf6ee; border: 1px solid #3f8a66; border-radius: 8px;
+  padding: 7px 15px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0,0,0,.35); transition: background .15s, border-color .15s;
+}
+.hint-btn:hover { background: #37795a; }
+.hint-btn.on { background: var(--gold); color: #2b2000; border-color: var(--gold); }
+.help-panel { text-align: left; max-width: 620px; max-height: 86vh; overflow-y: auto; }
+.help-panel h2 { text-align: center; }
+.help-panel .mindset-card {
+  border-color: var(--panel-line); background: rgba(255,255,255,.05);
+}
+.help-panel .mc-list li span, .help-panel .mc-table span { color: var(--ink-2); }
+.help-panel .mc-table td { border-top-color: var(--panel-line); }
+.help-panel .mc-title { color: var(--gold); }
+
+/* 声音开关：和「思路」并排，但更小更含蓄 —— 它是个设置，不是主操作 */
+.audio-btn {
+  position: fixed; right: 14px; top: 100px; z-index: 20;
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; padding: 0;
+  background: rgba(255,255,255,.1); color: var(--ink-2);
+  border: 1px solid var(--panel-line); border-radius: 8px;
+  cursor: pointer; transition: color .15s, background .15s;
+}
+.audio-btn:hover { background: rgba(255,255,255,.17); color: var(--ink); }
+.audio-btn.off { color: var(--ink-3); opacity: .75; }
+
+/*
+ * 退出对局：破坏性操作，所以做得比「提示」「思路」更不起眼 ——
+ * 它不该跟常用按钮抢注意力，但必须一眼找得到。
+ */
+.exit-btn {
+  background: none; color: var(--ink-3); border: 1px solid transparent;
+  border-radius: 8px; padding: 5px 12px; font: inherit; font-size: 12.5px;
+  cursor: pointer; transition: color .15s, border-color .15s;
+}
+.exit-btn:hover { color: var(--red); border-color: var(--red); }
+
+/* 二次确认弹层 */
+.confirm { text-align: center; max-width: 420px; }
+.confirm .sub { color: var(--ink-2); font-size: 14px; margin: 8px 0 20px; line-height: 1.6; }
+.confirm .acts { justify-content: center; }
+.act.danger { background: var(--red); color: #fff; border-color: var(--red); }
+.act.danger:hover { background: #c9483a; }
+
+/* ── 提示面板 ─────────────────────────────────────────────────── */
+/*
+ * 位置在手牌上方，视线不用离开自己该操作的地方。
+ * 一条提示必须同时给出「打什么」和「为什么」—— 目的是把人教到不需要它。
+ */
+.hint-panel {
+  margin: 8px 16px 0; padding: 11px 16px 10px;
+  background: linear-gradient(180deg, rgba(47,107,79,.32), rgba(47,107,79,.18));
+  border: 1px solid #3f8a66; border-radius: var(--radius);
+  animation: mj-rise .17s ease-out both;
+}
+.hint-head { display: flex; align-items: center; gap: 9px; margin-bottom: 7px; }
+.hint-tag {
+  font-size: 11px; font-weight: 700; letter-spacing: .1em;
+  background: var(--gold); color: #2b2000; border-radius: 4px; padding: 1px 6px;
+}
+.hint-head b { font-size: 16px; }
+.hint-close {
+  margin-left: auto; background: none; border: 0; cursor: pointer;
+  color: var(--ink-3); font-size: 20px; line-height: 1; padding: 0 4px;
+}
+.hint-close:hover { color: var(--ink); }
+.hint-lines { margin: 0; padding-left: 19px; }
+.hint-lines li { font-size: 13.5px; line-height: 1.62; color: var(--ink-2); }
+.hint-lines li b, .hint-lines li strong { color: var(--ink); }
+.hint-warn {
+  margin-top: 8px; padding: 7px 11px; border-radius: 6px;
+  background: rgba(176,58,46,.18); border-left: 3px solid var(--red);
+  font-size: 13px; line-height: 1.6; color: var(--ink);
+}
+.hint-foot { margin-top: 7px; font-size: 11.5px; color: var(--ink-3); }
+
+/* 提示推荐的那张手牌：一圈金边，眼睛不用在 14 张里找 */
+.tile-btn.hinted .mj-tile {
+  filter: drop-shadow(0 0 0 2px var(--gold)) drop-shadow(0 2px 5px rgba(0,0,0,.45));
+}
+.tile-btn.hinted { transform: translateY(-4px); }
+
+/* ── 牌的质感 ─────────────────────────────────────────────────── */
+/*
+ * 牌面本身的三层（正面 / 厚度 / 高光）在 ui/tiles.js 里画。
+ * 这里只补两件 CSS 才做得到的事：投影、以及悬停时的抬升。
+ * 投影用 drop-shadow 而不是 box-shadow —— 牌是 SVG，图形边缘不是矩形。
+ */
+.mj-tile {
+  filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.28));
+  transition: transform .13s ease, filter .13s ease;
+}
+/* 浅色手册页上的牌，投影要轻一些，否则会显脏 */
+.lesson-body .mj-tile { filter: drop-shadow(0 1px 1.2px rgba(60,50,30,.22)); }
+
+/* ── 桌面材质 ─────────────────────────────────────────────────── */
+/*
+ * 一层极淡的噪点，让深绿看起来像绒面而不是一块纯色。
+ * 用内联 SVG 的 feTurbulence 生成 —— 单文件交付不能带纹理图片，
+ * 而纯 CSS 渐变做不出真正的随机颗粒。
+ * 不透明度压到 0.028：看得出来有质感，但永远注意不到它。
+ */
+.table::before {
+  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  opacity: .028;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.table { position: relative; }
+
+/* ── 动效 ─────────────────────────────────────────────────────── */
+/*
+ * 分寸：全部控制在 200ms 上下，而且只做「位移 + 淡入」。
+ * 麻将的节奏本来就快，动画一长就变成等待。
+ */
+@keyframes mj-drop {
+  0%   { opacity: 0; transform: translateY(-13px) scale(1.06); }
+  62%  { opacity: 1; transform: translateY(1.5px) scale(.995); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes mj-slide-in {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes mj-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes mj-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(232,194,106,.5); }
+  50%      { box-shadow: 0 0 0 5px rgba(232,194,106,0); }
+}
+
+/* 刚打出的那张牌：落桌。只在内容真的变了的那一帧才播 —— 见 table.js 的签名机制 */
+.table.anim .pond .cell.last .mj-tile { animation: mj-drop .21s cubic-bezier(.2,.9,.3,1.2) both; }
+/* 刚摸进来的那张：从右侧滑入 */
+.table.anim .myhand-row .tile-btn.drawn .mj-tile { animation: mj-slide-in .19s ease-out both; }
+/* 轮到谁：一圈会呼吸的金边，比单纯换个颜色更容易扫到 */
+.seat.active .seat-head { box-shadow: 0 0 0 1px var(--gold) inset; }
+/* 结算与浮层：轻微上浮 */
+.overlay .result { animation: mj-rise .19s ease-out both; }
+
+/* 尊重系统的「减少动态效果」——
+ * 开这个开关的人往往有前庭功能方面的原因，动画不是审美偏好而是生理不适。 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+  .mj-tile { filter: none; }
+}
+
+
+/* ── 最小术语表：动手之前先把词讲清楚 ─────────────────────────── */
+.terms {
+  display: grid; grid-template-columns: auto 1fr; gap: 6px 16px;
+  margin: 16px 0 22px; padding: 15px 20px;
+  background: var(--blue-soft); border-left: 4px solid var(--blue);
+  border-radius: var(--radius);
+}
+.terms dt { font-weight: 700; white-space: nowrap; }
+.terms dd { margin: 0; font-size: 14.5px; color: var(--ink-2); }
+
+/* 牌面图例 */
+.tile-legend {
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--card); padding: 8px 18px; margin: 16px 0 20px;
+}
+.tl-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 9px 0; border-top: 1px solid var(--line);
+}
+.tl-row:first-child { border-top: 0; }
+.tl-label { flex: 0 0 44px; font-weight: 650; font-size: 14.5px; }
+.tl-tiles { display: flex; gap: 3px; flex: 0 0 auto; }
+.tl-note { font-size: 13.5px; color: var(--ink-3); }
